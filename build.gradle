@@ -32,6 +32,7 @@ ext {
 }
 
 subprojects { Project subproject ->
+    apply plugin: "maven-publish"
 
     repositories {
         maven { url "https://repo.grails.org/grails/core" }
@@ -39,8 +40,8 @@ subprojects { Project subproject ->
     }
 
     apply plugin: "io.spring.nohttp"
-    apply plugin:"groovy"
-    apply plugin:"java-library"
+    apply plugin: "groovy"
+    apply plugin: "java-library"
 
     if (subproject.name.contains('example') || subproject.name.startsWith('benchmark')) {
         return
@@ -56,7 +57,7 @@ subprojects { Project subproject ->
     sourceCompatibility = '1.8'
     targetCompatibility = '1.8'
 
-    apply from:"https://raw.githubusercontent.com/micronaut-projects/micronaut-build/v${micronautBuildVersion}/publishing.gradle"
+   // apply from: "https://raw.githubusercontent.com/micronaut-projects/micronaut-build/v${micronautBuildVersion}/publishing.gradle"
 
 
     jar {
@@ -67,7 +68,7 @@ subprojects { Project subproject ->
         }
     }
 
-    bintray.publish = true
+  //  bintray.publish = true
 
     tasks.withType(Test) {
         jvmArgs '-Duser.country=US'
@@ -90,7 +91,7 @@ subprojects { Project subproject ->
         all {
             resolutionStrategy.eachDependency { DependencyResolveDetails details ->
                 String group = details.requested.group
-                if(group == 'org.codehaus.groovy') {
+                if (group == 'org.codehaus.groovy') {
                     details.useVersion(groovyVersion)
                 }
             }
@@ -107,7 +108,7 @@ subprojects { Project subproject ->
         annotationProcessor "io.micronaut.docs:micronaut-docs-asciidoc-config-props:$micronautDocsVersion"
 
         testImplementation("org.spockframework:spock-core:${spockVersion}") {
-            exclude module:'groovy-all'
+            exclude module: 'groovy-all'
         }
 
         testImplementation "io.micronaut:micronaut-inject-groovy:$micronautVersion"
@@ -145,13 +146,32 @@ subprojects { Project subproject ->
     tasks.withType(GroovyCompile) {
         groovyOptions.forkOptions.jvmArgs.add('-Dgroovy.parameters=true')
     }
-    tasks.withType(JavaCompile){
+    tasks.withType(JavaCompile) {
         options.encoding = "UTF-8"
         options.compilerArgs.add('-parameters')
     }
+
+    publishing {
+        repositories {
+            maven {
+                name = "GitHubPackages"
+                url = uri("https://maven.pkg.github.com/matthewlittle/micronaut-ratelimiter")
+                credentials {
+                    username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+                    password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+                }
+            }
+        }
+
+        publications {
+            gpr(MavenPublication) {
+                from(components.java)
+            }
+        }
+    }
 }
 
-apply from:"https://raw.githubusercontent.com/micronaut-projects/micronaut-docs/v${micronautDocsVersion}/gradle/docs.gradle"
+apply from: "https://raw.githubusercontent.com/micronaut-projects/micronaut-docs/v${micronautDocsVersion}/gradle/docs.gradle"
 
 allprojects {
     apply plugin: 'idea'

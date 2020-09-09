@@ -141,6 +141,11 @@ public class CacheRateLimiterRegistry implements RateLimiterRegistry {
     }
 
     @Override
+    public Map<String, String> getTags() {
+        return null;
+    }
+
+    @Override
     public EventPublisher<RateLimiter> getEventPublisher() {
         throw new UnsupportedOperationException("Not supported due to resilience4j api limitations");
     }
